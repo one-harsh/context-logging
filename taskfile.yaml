@@ -1,0 +1,36 @@
+version: 3
+
+tasks:
+  default:
+    desc: Run default tasks (format the code, test it, and lint it)
+    cmds:
+      - task format
+      - task test
+      - task lint
+
+  install:go-dependencies:
+    desc: First time setup for Go tooling
+    cmds:
+      - cd ~/.goenv/shims && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - cd ~/.goenv/shims && go install golang.org/x/tools/gopls@latest
+      - goenv rehash
+
+  tidy:
+    desc: Tidy module dependencies
+    cmds:
+      - go mod tidy
+
+  format:
+    desc: Format the code
+    cmds:
+      - gofmt -s -w .
+
+  lint:
+    desc: Run local lint checks
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run the test suite
+    cmds:
+      - go test -v ./... --count=1
