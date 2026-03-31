@@ -137,7 +137,7 @@ func TestLogger_SummaryWithContext_UsesOnlyFieldsVisibleOnPassedContext(t *testi
 	if got := summaryEntry["request_id"]; got != "req-123" {
 		t.Fatalf("summary request_id = %v, want req-123", got)
 	}
-	if got := summaryEntry["method"]; got != "GET" {
+	if got := summaryEntry["http_method"]; got != "GET" {
 		t.Fatalf("summary method = %v, want GET", got)
 	}
 	if _, exists := summaryEntry["tenant_id"]; exists {
@@ -173,7 +173,7 @@ func TestLogger_SummaryWithContext_IncludesPromotedFieldsAcrossDerivedContexts(t
 	if got := summaryEntry["request_id"]; got != "req-123" {
 		t.Fatalf("summary request_id = %v, want req-123", got)
 	}
-	if got := summaryEntry["method"]; got != "GET" {
+	if got := summaryEntry["http_method"]; got != "GET" {
 		t.Fatalf("summary method = %v, want GET", got)
 	}
 	if got := summaryEntry["tenant_id"]; got != "tenant-abc" {

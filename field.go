@@ -28,9 +28,10 @@ const (
 	KeyRegion        = "region"
 	KeyComponent     = "component"
 	KeyOperation     = "operation"
-	KeyHTTPMethod    = "method"
-	KeyHTTPStatus    = "status"
+	KeyHTTPMethod    = "http_method"
+	KeyHTTPStatus    = "http_status"
 	KeyGRPCMethod    = "grpc_method"
+	KeyGRPCStatus    = "grpc_status"
 	KeyDuration      = "duration"
 	KeyBytes         = "bytes"
 )
@@ -88,6 +89,7 @@ func Operation(value string) LoggingField       { return StringField(KeyOperatio
 func HTTPMethod(value string) LoggingField      { return StringField(KeyHTTPMethod, value) }
 func HTTPStatus(value int) LoggingField         { return IntField(KeyHTTPStatus, value) }
 func GRPCMethod(value string) LoggingField      { return StringField(KeyGRPCMethod, value) }
+func GRPCStatus(value int) LoggingField         { return IntField(KeyGRPCStatus, value) }
 func Duration(value time.Duration) LoggingField { return DurationField(KeyDuration, value) }
 func Bytes(value int) LoggingField              { return IntField(KeyBytes, value) }
 
