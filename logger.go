@@ -45,6 +45,35 @@ type BoundLogger struct {
 	knownKeys map[string]struct{}
 }
 
+type loggerOptions struct {
+	fields       map[string]LoggingField
+	strictFields bool
+}
+
+type LoggerOption func(*loggerOptions)
+
+func WithFields(fields ...LoggingField) LoggerOption {
+	return func(o *loggerOptions) {
+		for _, f := range fields {
+			o.fields[f.key] = f
+		}
+	}
+}
+
+func WithStrictFields() LoggerOption {
+	return func(o *loggerOptions) {
+		o.strictFields = true
+	}
+}
+
+func FromZap(z *zap.Logger, opts ...LoggerOption) *Logger {
+	o := &loggerOptions{fields: make(map[string]LoggingField)}
+	for _, apply := range opts {
+		apply(o)
+	}
+	return &Logger{logger: z, fields: o.fields, strictFields: o.strictFields}
+}
+
 func New(cfg Config) (*Logger, error) {
 	levelText := cfg.Level
 	if levelText == "" {
