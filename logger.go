@@ -120,6 +120,14 @@ func Nop() *Logger {
 	return &Logger{logger: zap.NewNop()}
 }
 
+func (l *Logger) WithCallerSkip(skip int) *Logger {
+	return &Logger{
+		logger:       l.logger.WithOptions(zap.AddCallerSkip(skip)),
+		fields:       l.fields,
+		strictFields: l.strictFields,
+	}
+}
+
 func (l *Logger) Named(name string) *Logger {
 	return &Logger{logger: l.logger.Named(name), fields: l.fields, strictFields: l.strictFields}
 }

@@ -39,6 +39,33 @@ func TestLogger_Fatal_LogsAndExits(t *testing.T) {
 	}
 }
 
+func TestWithCallerSkip_AdjustsCallerFrame(t *testing.T) {
+	var buf bytes.Buffer
+
+	logger, err := New(Config{Output: &buf})
+	if err != nil {
+		t.Fatalf("new logger: %v", err)
+	}
+
+	wrapped := logger.WithCallerSkip(1)
+	logViaWrapper := func(l *Logger, msg string) {
+		l.Background().Info(msg)
+	}
+
+	// With skip=1, the caller reported should be this test function (the caller
+	// of logViaWrapper), not the wrapper itself.
+	logViaWrapper(wrapped, "wrapped")
+	entry := loggingtest.LastEntryFromBytes(t, buf.Bytes())
+	caller, _ := entry["caller"].(string)
+
+	if caller == "" {
+		t.Fatal("expected caller field in log output")
+	}
+	if !strings.Contains(caller, "logger_test.go") {
+		t.Fatalf("caller should point to logger_test.go, got %q", caller)
+	}
+}
+
 func TestFromZap_UsesProvidedLogger(t *testing.T) {
 	var buf bytes.Buffer
 
