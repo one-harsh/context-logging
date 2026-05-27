@@ -363,6 +363,54 @@ func TestLogger_Dedup_WithOverriddenByContext(t *testing.T) {
 	}
 }
 
+func TestFieldFromContext_ReturnsBoundValue(t *testing.T) {
+	ctx := logging.Bind(context.Background(),
+		logging.TenantID("tenant-abc"),
+		logging.IntField("attempt", 3),
+	)
+
+	if got, ok := logging.FieldFromContext[string](ctx, logging.KeyTenantID); !ok || got != "tenant-abc" {
+		t.Fatalf("tenant_id = (%q, %v), want (tenant-abc, true)", got, ok)
+	}
+	if got, ok := logging.FieldFromContext[int](ctx, "attempt"); !ok || got != 3 {
+		t.Fatalf("attempt = (%d, %v), want (3, true)", got, ok)
+	}
+}
+
+func TestFieldFromContext_MissingKey_ReturnsZeroFalse(t *testing.T) {
+	ctx := logging.Bind(context.Background(), logging.TenantID("tenant-abc"))
+
+	got, ok := logging.FieldFromContext[string](ctx, "absent")
+	if ok || got != "" {
+		t.Fatalf("absent key = (%q, %v), want (\"\", false)", got, ok)
+	}
+}
+
+func TestFieldFromContext_TypeMismatch_ReturnsZeroFalse(t *testing.T) {
+	ctx := logging.Bind(context.Background(), logging.IntField("attempt", 3))
+
+	got, ok := logging.FieldFromContext[string](ctx, "attempt")
+	if ok || got != "" {
+		t.Fatalf("type mismatch = (%q, %v), want (\"\", false)", got, ok)
+	}
+}
+
+func TestFieldFromContext_NilContext_ReturnsZeroFalse(t *testing.T) {
+	got, ok := logging.FieldFromContext[string](nil, logging.KeyTenantID)
+	if ok || got != "" {
+		t.Fatalf("nil ctx = (%q, %v), want (\"\", false)", got, ok)
+	}
+}
+
+func TestFieldFromContext_SummaryOnlyField_NotVisible(t *testing.T) {
+	ctx := logging.BindSummary(context.Background(), logging.TenantID("tenant-abc"))
+
+	got, ok := logging.FieldFromContext[string](ctx, logging.KeyTenantID)
+	if ok || got != "" {
+		t.Fatalf("summary-only field = (%q, %v), want (\"\", false)", got, ok)
+	}
+}
+
 func TestRedactionHelpers_HideSensitiveData(t *testing.T) {
 	redactedURL := logging.RedactURLString("https://storage.example.com/foo?X-Super-Secret=secret&X-Credential=abc")
 	if strings.Contains(redactedURL, "X-Super-Secret") {

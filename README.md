@@ -310,6 +310,26 @@ logger.WithContext(ctx).Info("request completed",
 )
 ```
 
+### Reading Bound Fields
+
+Most application code should treat bound fields as logging context, not as the
+source of truth for authorization, routing, or other business decisions. Those
+values should still come from the application's own request state.
+
+For middleware, interceptors, tests, and instrumentation code that needs to
+inspect what has already been bound for ordinary log emission,
+`FieldFromContext` provides a typed read path without exposing the underlying
+field map or backend logger:
+
+```go
+if _, ok := logging.FieldFromContext[string](ctx, logging.KeyRequestID); !ok {
+	ctx = logging.Bind(ctx, logging.RequestID(requestIDFromHeaders(headers)))
+}
+```
+
+`FieldFromContext` only reads fields attached through `Bind(...)`. Fields
+promoted through `BindSummary(...)` remain summary-only and are not returned.
+
 ### Field Deduplication
 
 `WithContext(ctx)` and `SummaryWithContext(ctx)` do not merge the same sources.

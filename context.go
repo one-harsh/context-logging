@@ -150,3 +150,28 @@ func RequestIDFromContext(ctx context.Context) string {
 	}
 	return value
 }
+
+// FieldFromContext extracts a bound field's value by key. The type parameter T
+// must match the type used when the field was bound (e.g. StringField -> string,
+// IntField -> int). Returns the zero value and false if the key is absent or
+// the stored value does not match T. Only fields bound via Bind are visible;
+// summary-only fields promoted via BindSummary are not returned.
+func FieldFromContext[T any](ctx context.Context, key string) (T, bool) {
+	var zero T
+	if ctx == nil {
+		return zero, false
+	}
+	fieldMap, ok := ctx.Value(boundFieldsKey{}).(map[string]LoggingField)
+	if !ok {
+		return zero, false
+	}
+	field, exists := fieldMap[key]
+	if !exists {
+		return zero, false
+	}
+	value, ok := field.value.(T)
+	if !ok {
+		return zero, false
+	}
+	return value, true
+}
