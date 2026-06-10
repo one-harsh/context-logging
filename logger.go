@@ -184,6 +184,10 @@ func (l *Logger) bindFromFields(ctx context.Context, ctxFields []LoggingField) *
 	return &BoundLogger{logger: bakedLogger, knownKeys: knownKeys}
 }
 
+func (l *Logger) Enabled(level Level) bool {
+	return l.logger.Core().Enabled(toZapLevel(level))
+}
+
 func (l *Logger) Sync() error {
 	return l.logger.Sync()
 }
@@ -246,6 +250,10 @@ func (l *BoundLogger) Log(level Level, msg string, fields ...LoggingField) {
 		return
 	}
 	l.logger.Log(toZapLevel(level), msg, l.resolveInline(fields)...)
+}
+
+func (l *BoundLogger) Enabled(level Level) bool {
+	return l.logger.Core().Enabled(toZapLevel(level))
 }
 
 func (l *BoundLogger) Sync() error {

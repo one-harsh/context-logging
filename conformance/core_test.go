@@ -411,6 +411,60 @@ func TestFieldFromContext_SummaryOnlyField_NotVisible(t *testing.T) {
 	}
 }
 
+func TestEnabled_RespectsConfiguredLevel(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := logging.New(logging.Config{Output: &buf, Level: "info"})
+	if err != nil {
+		t.Fatalf("new logger: %v", err)
+	}
+
+	if logger.Enabled(logging.DebugLevel) {
+		t.Fatalf("DebugLevel should be disabled at info")
+	}
+	if !logger.Enabled(logging.InfoLevel) {
+		t.Fatalf("InfoLevel should be enabled at info")
+	}
+	if !logger.Enabled(logging.ErrorLevel) {
+		t.Fatalf("ErrorLevel should be enabled at info")
+	}
+}
+
+func TestEnabled_DebugLevel_EnablesAllLevels(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := logging.New(logging.Config{Output: &buf, Level: "debug"})
+	if err != nil {
+		t.Fatalf("new logger: %v", err)
+	}
+
+	if !logger.Enabled(logging.DebugLevel) {
+		t.Fatalf("DebugLevel should be enabled at debug")
+	}
+	if !logger.Enabled(logging.InfoLevel) {
+		t.Fatalf("InfoLevel should be enabled at debug")
+	}
+}
+
+func TestBoundLogger_Enabled_MatchesLogger(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := logging.New(logging.Config{Output: &buf, Level: "warn"})
+	if err != nil {
+		t.Fatalf("new logger: %v", err)
+	}
+
+	bound := logger.WithContext(context.Background())
+	for _, level := range []logging.Level{
+		logging.DebugLevel,
+		logging.InfoLevel,
+		logging.WarnLevel,
+		logging.ErrorLevel,
+	} {
+		if logger.Enabled(level) != bound.Enabled(level) {
+			t.Fatalf("Enabled mismatch at level %d: logger=%v, bound=%v",
+				level, logger.Enabled(level), bound.Enabled(level))
+		}
+	}
+}
+
 func TestRedactionHelpers_HideSensitiveData(t *testing.T) {
 	redactedURL := logging.RedactURLString("https://storage.example.com/foo?X-Super-Secret=secret&X-Credential=abc")
 	if strings.Contains(redactedURL, "X-Super-Secret") {

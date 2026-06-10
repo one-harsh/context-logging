@@ -261,6 +261,23 @@ if err := initialize(); err != nil {
 }
 ```
 
+### Hot-Path Level Gating
+
+`Enabled(level)` reports whether the logger would emit at a given level. Use it
+to skip expensive field construction when the level is disabled:
+
+```go
+if logger.Enabled(logging.DebugLevel) {
+	logger.WithContext(ctx).Debug("trace",
+		logging.StringField("payload", serializeExpensive(req)),
+	)
+}
+```
+
+Checking on `*Logger` (before `WithContext`) also skips the field merge, sort,
+and dedup work that context binding performs. `*BoundLogger.Enabled(level)`
+exists with the same semantics for callers that already hold a bound logger.
+
 ## Field Guidelines
 
 ### Context Fields vs Summary Fields vs Inline Fields
